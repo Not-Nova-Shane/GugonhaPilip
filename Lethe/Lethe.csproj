@@ -15,9 +15,9 @@
     <OutputPath>.\Release</OutputPath>
     <NoWarn>1701;1702;2211;CA2211;IDE1006;IDE0060</NoWarn>
     <DebugType>none</DebugType>
-    <RootNamespace>MyPlugin</RootNamespace>
-    <AssemblyName>MyPlugin</AssemblyName>
-    <Product>MyPlugin</Product>
+    <RootNamespace>GugoPilip</RootNamespace>
+    <AssemblyName>GugoPilip</AssemblyName>
+    <Product>GugoPilip</Product>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
@@ -31,6 +31,9 @@
   <!-- ~~~~~ ASSEMBLY REFERENCES ~~~~~ -->
   <!-- BepinEx -->
   <ItemGroup>
+    <Reference Include="Merged">
+      <HintPath>..\..\..\..\Desktop\LIMBUS\BepInEx\plugins\Lethe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime" />
     <Reference Include="$(LimbusCompanyFolder)\BepInEx\core\*.dll">
       <HintPath>%(Identity)</HintPath>

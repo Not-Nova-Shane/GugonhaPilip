@@ -1,0 +1,81 @@
+﻿using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace GugoPilip
+{
+    internal class Passive_CelloEnsemble
+    {
+        public static int pilipUnitId = 0; // gugo, edit this when you recieve the git
+
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
+        [HarmonyPrefix]
+        private static void InflictCombustionByVibration(BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
+        {
+            // tip, to add and know which overloads (parameters) to use, hover the method to see what it takes.
+            // this patch adds the "int stack" parameter, so I know how much vibration is being inflicted
+            // so I can mirror that onto burn.
+
+            if (giverOrNull.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
+            if (bufKeyword != BUFF_UNIQUE_KEYWORD.Vibration) { return; } // return if not inflicting tremor
+            giverOrNull.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, stack, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _); // out _ means out nothing, you can replace if you need the excess for some reason
+        }
+
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.GetMinSpeedAdder))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
+        [HarmonyPrefix]
+        private static void IncreaseMinSpeed(BattleUnitModel __instance, ref int __result)
+        {
+            // the reason that __result and __instance can be used even if this method has no params is because they are unique overloads
+            // as __instance is managed by harmony, and ref is able to just grab a var that exists within the method itself
+
+            if (__instance.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
+            if (__instance.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion).GetStack() < 36) { return; }
+            __result += 1; // add 1 min speed
+        }
+
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.GetMaxSpeedAdder))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
+        [HarmonyPrefix]
+        private static void IncreaseMaxSpeed(BattleUnitModel __instance, ref int __result)
+        {
+            // the reason that __result and __instance can be used even if this method has no params is because they are unique overloads
+            // as __instance is managed by harmony, and ref is able to just grab a var that exists within the method itself
+
+            if (__instance.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
+            if (__instance.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion).GetStack() < 36) { return; }
+            __result += 1; // add 1 min speed
+        }
+
+
+        [HarmonyPatch(typeof(SkillModel), nameof(SkillModel.GetAttackDmgMultiplier))] // patching Class SkillModel, targeting the specific method GetAttackDmgMultiplier
+        [HarmonyPrefix]
+        private static void IncreaseDamagePilipBurn(BattleActionModel action, CoinModel coin, ref float __result, SkillModel __instance)
+        {
+            if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
+            if (action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion).GetStack() < 24) { return; }
+            __result += 10 * 0.01f; // * 0.01f is due to how limbabs does mults
+            // 10 * 0.01f = 0.1, which is 10% extra damage. you can fact check via dumpeddata probably
+        }
+
+        [HarmonyPatch(typeof(SkillModel), nameof(SkillModel.GetSkillPowerAdder))] // patching Class SkillModel, targeting the specific method GetSkillPowerAdder
+        [HarmonyPrefix]
+        private static void IncreaseBasePowerPilipBurn(BattleActionModel action, ref int __result, SkillModel __instance)
+        {
+            if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
+            if (action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion).GetStack() < 12) { return; }
+            __result += 1; // add 1 base power
+        }
+
+        [HarmonyPatch(typeof(SkillModel), nameof(SkillModel.GetSkillPowerResultAdder))] // patching Class SkillModel, targeting the specific method GetSkillPowerResultAdder
+        [HarmonyPrefix]
+        private static void IncreaseFinalPowerPilipBurn(BattleActionModel action, BATTLE_EVENT_TIMING timing, CoinModel coinOrNull, ref int __result, SkillModel __instance)
+        {
+            if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
+            if (action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion).GetStack() < 48) { return; }
+            __result += 1; // add 1 final power
+        }
+
+    }
+}

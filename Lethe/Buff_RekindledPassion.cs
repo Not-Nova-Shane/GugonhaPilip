@@ -9,8 +9,15 @@ namespace GugoPilip
 {
     internal class Buff_RekindledPassion
     {
-        public static BUFF_UNIQUE_KEYWORD Rekindled_Passion = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("ENTER_BUFF_ID_HERE");
+        public static BUFF_UNIQUE_KEYWORD Rekindled_Passion = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("bluerekindledpassion");
         public static bool hasRecoveredBreak = false;
+
+        public static bool Verify_PilipRekindled(BattleUnitModel __instance)
+        {
+            if (__instance.GetUnitID() != Passive_CelloEnsemble.pilipUnitId) { return false; }
+            if (__instance.GetActivatedBuf(Rekindled_Passion) == null) { return false; }
+            return true;
+        }
 
         [HarmonyPatch(typeof(BattleObjectManager), nameof(BattleObjectManager.OnStageStart_Model))]
         [HarmonyPostfix]
@@ -19,11 +26,11 @@ namespace GugoPilip
             hasRecoveredBreak = false;
         }
 
-        [HarmonyPatch(typeof(BuffModel), nameof(BuffModel.OnRoundStart_After_Event))]
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.OnRoundStart_After_Event))]
         [HarmonyPostfix]
-        private static void SpendScorchfield(BattleUnitModel unit, BATTLE_EVENT_TIMING timing, BuffModel __instance)
+        private static void SpendScorchfield(BATTLE_EVENT_TIMING timing, BattleUnitModel __instance)
         {
-            if (__instance.GetMainKeyword() != Rekindled_Passion) { return; }
+            if (!Verify_PilipRekindled(__instance)) { return; }
             BattleUnitBuffManager bufManager = Singleton<BattleUnitBuffManager>.Instance;
             if (bufManager == null)
             {
@@ -42,24 +49,25 @@ namespace GugoPilip
             int a =  Scorchfield.Stack.GetDecrypted();
             if (a >= 20)
             {
-                Scorchfield.UseBuffStack(unit, BUFF_UNIQUE_KEYWORD.FireField, 20, timing);
-                unit.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.AttackUp, 2, unit, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
-                unit.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DefenseUp, 2, unit, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
+                Scorchfield.UseBuffStack(__instance, BUFF_UNIQUE_KEYWORD.FireField, 20, timing);
+                __instance.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.AttackUp, 2, __instance, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
+                __instance.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DefenseUp, 2, __instance, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
             }
             else if (a >= 10)
             {
-                Scorchfield.UseBuffStack(unit, BUFF_UNIQUE_KEYWORD.FireField, a, timing);
-                unit.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.AttackUp, 1, unit, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
-                unit.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DefenseUp, 1, unit, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
+                Scorchfield.UseBuffStack(__instance, BUFF_UNIQUE_KEYWORD.FireField, a, timing);
+                __instance.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.AttackUp, 1, __instance, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
+                __instance.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DefenseUp, 1, __instance, timing, 0, 0, ABILITY_SOURCE_TYPE.BUFF, null, out _, out _, out _, out _);
             }
         }
 
-        [HarmonyPatch(typeof(BuffModel), nameof(BuffModel.OnRoundEnd))]
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.OnRoundEnd))]
         [HarmonyPostfix]
-        private static void DecreaseBurnRE(BattleUnitModel unit, BATTLE_EVENT_TIMING timing, BuffModel __instance)
+        private static void DecreaseBurnRE(BattleUnitModel __instance, BATTLE_EVENT_TIMING timing)
         {
-            if (__instance.GetMainKeyword() != Rekindled_Passion) { return; }
-            unit.LoseBuffStack(BUFF_CATEGORY_KEYWORD.COMBUSTION, 10, timing);
+            return;
+            if (!Verify_PilipRekindled(__instance)) { return; }
+            __instance.LoseBuffStack(BUFF_CATEGORY_KEYWORD.COMBUSTION, 10, timing);
         }
 
         [HarmonyPatch(typeof(BuffModel), nameof(BuffModel.GetAttackLevelAdder))]
@@ -91,6 +99,7 @@ namespace GugoPilip
         [HarmonyPrefix]
         private static void LoseBurnTurn(BattleUnitModel unit, BATTLE_EVENT_TIMING timing)
         {
+            return;
             if (unit.GetActivatedBuf(Rekindled_Passion) == null) { return; }
             var burn = unit.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null)

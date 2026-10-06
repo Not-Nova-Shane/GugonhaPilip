@@ -4,7 +4,7 @@ namespace GugoPilip
 {
     internal class Buff_Overheat
     {
-        public static BUFF_UNIQUE_KEYWORD Overheat = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("ENTER_BUFF_ID_HERE");
+        public static BUFF_UNIQUE_KEYWORD Overheat = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("overheatphil");
         public static int ExtraBurnInflictedThisTurn = 0;
         public static int ExtraVibrationInflictedThisTurn = 0;
 
@@ -32,11 +32,12 @@ namespace GugoPilip
             __result += 80 * 0.01f;
         }
 
-
+        
         [HarmonyPatch(typeof(BuffModel), nameof(BuffModel.OnRoundEnd))] // patching Class SkillModel, targeting the specific method GetAttackDmgMultiplier
         [HarmonyPrefix]
         private static void LoseBurnTurn(BattleUnitModel unit, BATTLE_EVENT_TIMING timing)
         {
+            return;
             if (unit.GetActivatedBuf(Overheat) == null) { return; }
             unit.LoseBuffTurn(BUFF_UNIQUE_KEYWORD.Combustion, 1, timing);
 
@@ -49,20 +50,23 @@ namespace GugoPilip
 
         [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
         [HarmonyPostfix]
-        private static void InflictExtraBullshit(BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
+        private static void InflictExtraBullshit(BattleUnitModel receiver, BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
         {
+            return;
             if (giverOrNull.GetActivatedBuf(Overheat) == null) { return; } // return if they dont have buff
+            if (receiver.IsFaction(UNIT_FACTION.PLAYER)) { return; }
+            Main.log.LogInfo($"Giver: {giverOrNull.GetName()}, receiver: {receiver.GetName()} is faction {receiver.Faction}");
             if (bufKeyword != BUFF_UNIQUE_KEYWORD.Combustion && bufKeyword != BUFF_UNIQUE_KEYWORD.Vibration) { return; } // return if not inflicting burn and vibration
             if (ExtraBurnInflictedThisTurn < 1)
             {
-                giverOrNull.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
                 ExtraBurnInflictedThisTurn += 1;
+                receiver.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
             }
 
             if (ExtraVibrationInflictedThisTurn < 1)
             {
-                giverOrNull.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Vibration, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
                 ExtraVibrationInflictedThisTurn += 1;
+                receiver.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Vibration, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
             }
         }
 

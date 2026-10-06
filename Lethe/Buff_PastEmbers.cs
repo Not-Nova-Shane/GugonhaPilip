@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerraFX.Interop.Windows;
+using static AbilityEffect_DamageBuffWithDisappear;
 
 namespace GugoPilip
 {
     internal class Buff_PastEmbers
     {
-        public static BUFF_UNIQUE_KEYWORD Past_Embers = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("ENTER_BUFF_ID_HERE");
+        public static BUFF_UNIQUE_KEYWORD Past_Embers = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("pastembersphil");
         public static int ExtraBurnInflictedThisTurn = 0;
 
         [HarmonyPatch(typeof(BattleObjectManager), nameof(BattleObjectManager.OnRoundStart_Model))]
@@ -52,17 +54,30 @@ namespace GugoPilip
             __result += 2; 
         }
 
+        public static bool hasInstance = false;
+
         [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
         [HarmonyPostfix]
-        private static void InflictExtraBurn(BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
+        private static void InflictExtraBurn(BattleUnitModel receiver, BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
         {
+            return;
             if (giverOrNull.GetUnitID() != Passive_CooledHeart.pilipUnitId) { return; } // simple unit check to see if giver is pilip
             if (giverOrNull.GetActivatedBuf(Past_Embers) == null) { return; } // return if they dont have buff
             if (bufKeyword != BUFF_UNIQUE_KEYWORD.Combustion) { return; } // return if not inflicting burn
-            if (ExtraBurnInflictedThisTurn < 2)
+            if (receiver.IsFaction(UNIT_FACTION.PLAYER)) { return; }
+            if (hasInstance)
             {
-                giverOrNull.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
-                ExtraBurnInflictedThisTurn += 1;
+                hasInstance = false;
+                return;
+            }
+            else
+            {
+                if (ExtraBurnInflictedThisTurn < 2)
+                {
+                    hasInstance = true;
+                    ExtraBurnInflictedThisTurn += 1;
+                    receiver.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
+                }
             }
         }
 

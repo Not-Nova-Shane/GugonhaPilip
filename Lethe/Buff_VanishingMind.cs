@@ -9,7 +9,7 @@ namespace GugoPilip
 {
     internal class Buff_VanishingMind
     {
-        public static BUFF_UNIQUE_KEYWORD Vanishing_Mind = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("ENTER_BUFF_ID_HERE");
+        public static BUFF_UNIQUE_KEYWORD Vanishing_Mind = Lethe.Patches.CustomBuffs.ParseBuffUniqueKeyword("Vanishing_Mind");
         public static int ExtraVibrationInflictedThisTurn = 0;
 
         [HarmonyPatch(typeof(BattleObjectManager), nameof(BattleObjectManager.OnRoundStart_Model))]
@@ -62,7 +62,7 @@ namespace GugoPilip
 
         [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.OnChangeMp))] 
         [HarmonyPostfix]
-        private static void InflictExtraTremor(int oldMp, int newMp, BattleUnitModel __instance)
+        private static void CapMaxMP(int oldMp, int newMp, BattleUnitModel __instance)
         {
             if (__instance.GetUnitID() != Passive_CooledHeart.pilipUnitId) { return; } // simple unit check to see if giver is pilip
             if (__instance.GetActivatedBuf(Vanishing_Mind) == null) { return; } // return if they dont have buff
@@ -72,6 +72,29 @@ namespace GugoPilip
             }
         }
 
+        public static bool hasInstance = false;
+
+        [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
+        [HarmonyPostfix]
+        private static void InflictExtraVibration(BattleUnitModel receiver, BUFF_UNIQUE_KEYWORD bufKeyword, int stack, int activeRound, BattleUnitModel giverOrNull, ABILITY_SOURCE_TYPE srcType, BATTLE_EVENT_TIMING timing, int overStack, int overTurn)
+        {
+            if (giverOrNull.GetUnitID() != Passive_CooledHeart.pilipUnitId) { return; } // simple unit check to see if giver is pilip
+            if (giverOrNull.GetActivatedBuf(Vanishing_Mind) == null) { return; } // return if they dont have buff
+            if (bufKeyword != BUFF_UNIQUE_KEYWORD.Combustion) { return; } // return if not inflicting burn
+            if (receiver.IsFaction(UNIT_FACTION.PLAYER)) { return; }
+            Main.log.LogInfo($"Giver: {giverOrNull.GetName()}, receiver: {receiver.GetName()} is faction {receiver.Faction}");
+            if (hasInstance)
+            {
+                hasInstance = false;
+                return;
+            }
+            if (ExtraVibrationInflictedThisTurn < 2)
+            {
+                hasInstance = true;
+                ExtraVibrationInflictedThisTurn += 1;
+                receiver.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.Combustion, 1, giverOrNull, timing, 0, 0, srcType, null, out _, out _, out _, out _);
+            }
+        }
 
 
     }

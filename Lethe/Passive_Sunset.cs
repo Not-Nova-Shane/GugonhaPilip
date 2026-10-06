@@ -57,6 +57,9 @@ namespace GugoPilip
             {
                 pilip.AddUnitKeyword(UNIT_KEYWORD.DAWN);
                 pilip.AddBuff_Giver(Buff_PastEmbers.Past_Embers, 1, pilip, timing, 0, 0, ABILITY_SOURCE_TYPE.PASSIVE, null, out _, out _, out _, out _);
+                pilip.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DawnTeam, 3, pilip, timing, 0,0, ABILITY_SOURCE_TYPE.PASSIVE, null, out _, out _, out _, out _);
+                dawnFausU.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DawnTeam, 3, pilip, timing, 0, 0, ABILITY_SOURCE_TYPE.PASSIVE, null, out _, out _, out _, out _);
+                dawnGregU.AddBuff_Giver(BUFF_UNIQUE_KEYWORD.DawnTeam, 3, pilip, timing, 0, 0, ABILITY_SOURCE_TYPE.PASSIVE, null, out _, out _, out _, out _);
             }
 
         }

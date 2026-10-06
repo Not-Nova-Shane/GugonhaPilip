@@ -9,7 +9,7 @@ namespace GugoPilip
 {
     internal class Passive_CooledHeart
     {
-        public static int pilipUnitId = 0; // gugo, edit this when you recieve the git
+        public static int pilipUnitId = 67128; // gugo, edit this when you recieve the git
 
         [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
         [HarmonyPrefix]
@@ -37,7 +37,8 @@ namespace GugoPilip
             if (keyword != BUFF_UNIQUE_KEYWORD.Combustion) { return; } // must be burn
 
             int SP = __instance.Mp;
-            int room = Math.Max(0, SP - (-40)); // calculate how much SP can be lost before hitting -40
+            int dmgToTake = __result;
+            int room = Math.Min(dmgToTake, SP - (-40)); // calculate how much SP can be lost before hitting -40
             __instance.TakeMpDamage(null, room, timing, dmgSrcType, out int _);
             __result = 0;
         }

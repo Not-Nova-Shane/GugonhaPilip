@@ -12,7 +12,7 @@ namespace GugoPilip
     {
         public static int pilipUnitId = 67128; // gugo, edit this when you recieve the git
         public static bool hasInflictInst = false;
-        public static bool gugoTestLog = false; // set to true for logging stock, left to default for you to test
+        public static bool gugoTestLog = true; // set to true for logging stock, left to default for you to test
         public static bool CheckSinRequirement_Cello()
         {
             SinManager sinMgr = Singleton<SinManager>.Instance;

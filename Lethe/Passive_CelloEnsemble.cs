@@ -12,6 +12,24 @@ namespace GugoPilip
     {
         public static int pilipUnitId = 67128; // gugo, edit this when you recieve the git
         public static bool hasInflictInst = false;
+        public static bool gugoTestLog = false; // set to true for logging stock, left to default for you to test
+        public static bool CheckSinRequirement_Cello()
+        {
+            SinManager sinMgr = Singleton<SinManager>.Instance;
+            var sinDict = sinMgr.GetAttributeStock(UNIT_FACTION.PLAYER);
+            int slothStock = sinDict[ATTRIBUTE_TYPE.AMBER].GetDecrypted();
+            int wrathStock = sinDict[ATTRIBUTE_TYPE.CRIMSON].GetDecrypted();
+            int gloomStock = sinDict[ATTRIBUTE_TYPE.AZURE].GetDecrypted();
+
+            if (gugoTestLog)
+            {
+                Main.log.LogInfo($"Current stocks: Sloth: {slothStock}, Wrath: {wrathStock}, Gloom: {gloomStock}");
+            }
+
+            if (slothStock >=2 && wrathStock >=1 && gloomStock >= 2) { return true; }
+
+            return false;
+        }
 
         [HarmonyPatch(typeof(BattleUnitModel), nameof(BattleUnitModel.RightAfterAnyUnitGetAnyBuff))] // patching Class BattleUnitModel, targeting the specific method RightAfterAnyUnitGetAnyBuff
         [HarmonyPrefix]
@@ -20,7 +38,7 @@ namespace GugoPilip
             // tip, to add and know which overloads (parameters) to use, hover the method to see what it takes.
             // this patch adds the "int stack" parameter, so I know how much vibration is being inflicted
             // so I can mirror that onto burn.
-
+            if (!CheckSinRequirement_Cello()) { return; }
             if (giverOrNull.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
             if (bufKeyword != BUFF_UNIQUE_KEYWORD.Vibration) { return; } // return if not inflicting tremor
             if (receiver.IsFaction(UNIT_FACTION.PLAYER)) { return; }
@@ -42,7 +60,7 @@ namespace GugoPilip
         {
             // the reason that __result and __instance can be used even if this method has no params is because they are unique overloads
             // as __instance is managed by harmony, and ref is able to just grab a var that exists within the method itself
-
+            if (!CheckSinRequirement_Cello()) { return; }
             if (__instance.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
             BuffInfo burn = __instance.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null) { return; }
@@ -56,7 +74,7 @@ namespace GugoPilip
         {
             // the reason that __result and __instance can be used even if this method has no params is because they are unique overloads
             // as __instance is managed by harmony, and ref is able to just grab a var that exists within the method itself
-
+            if (!CheckSinRequirement_Cello()) { return; }
             if (__instance.GetUnitID() != pilipUnitId) { return; } // simple unit check to see if giver is pilip
             BuffInfo burn = __instance.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null) { return; }
@@ -69,6 +87,7 @@ namespace GugoPilip
         [HarmonyPrefix]
         private static void IncreaseDamagePilipBurn(BattleActionModel action, CoinModel coin, ref float __result, SkillModel __instance)
         {
+            if (!CheckSinRequirement_Cello()) { return; }
             if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
             BuffInfo burn = action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null) { return; }
@@ -81,6 +100,7 @@ namespace GugoPilip
         [HarmonyPrefix]
         private static void IncreaseBasePowerPilipBurn(BattleActionModel action, ref int __result, SkillModel __instance)
         {
+            if (!CheckSinRequirement_Cello()) { return; }
             if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
             BuffInfo burn = action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null) { return; }
@@ -92,6 +112,7 @@ namespace GugoPilip
         [HarmonyPrefix]
         private static void IncreaseFinalPowerPilipBurn(BattleActionModel action, BATTLE_EVENT_TIMING timing, CoinModel coinOrNull, ref int __result, SkillModel __instance)
         {
+            if (!CheckSinRequirement_Cello()) { return; }
             if (action.Model.GetUnitID() != pilipUnitId) { return; } // model is battleunitmodel
             BuffInfo burn = action.Model.GetActivatedBuf(BUFF_UNIQUE_KEYWORD.Combustion);
             if (burn == null) { return; }

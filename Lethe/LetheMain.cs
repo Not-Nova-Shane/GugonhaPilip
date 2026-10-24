@@ -21,14 +21,12 @@ public class Main : BasePlugin
         log = new ManualLogSource(NAME);
         BepInEx.Logging.Logger.Sources.Add(log);
 
-        harmony.PatchAll(typeof(Passive_CooledHeart)); // patch specifically a class related to our shi
+        harmony.PatchAll(typeof(Passive_CooledHeart)); 
         harmony.PatchAll(typeof(Buff_Overheat));
         harmony.PatchAll(typeof(Buff_RekindledPassion));
         harmony.PatchAll(typeof(Passive_Sunset));
         harmony.PatchAll(typeof(Passive_CelloEnsemble));
         harmony.PatchAll(typeof(Buff_VanishingMind));
         harmony.PatchAll(typeof(Buff_PastEmbers));
-
-
     }
 }
